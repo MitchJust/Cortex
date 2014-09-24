@@ -5,6 +5,9 @@
  */
 package com.bluescopesteel.cortex.commands;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author Mitchell Just (Mitchell.Just@BlueScopeSteel.com)
@@ -24,13 +27,23 @@ public class CommandParser {
             return parseSetValueCommand(command);
         }
 
-        if (command.contains(".") && !isNumeric(command)) {
+        //Check if there's an accessor (".")
+        //Also make sure that this isn't part of a number
+        //And that it's not a String
+        if (command.contains(".") && !isNumeric(command) && !command.startsWith("\"")) {
             //Memeber Access
             if (command.endsWith(")")) {
                 //Method
                 System.out.println("A Method!");
                 return parseMethodInvokationCommand(command);
             } else {
+
+                //Is this a class reference?
+                Class clazz = getClassReference(command);
+                if (clazz != null) {
+                    System.out.println("A Class!");
+                    return new ClassReferenceCommand(clazz);
+                }
                 //Field
 
                 System.out.println("A Field!");
@@ -45,6 +58,15 @@ public class CommandParser {
 
     }
 
+    private static Class getClassReference(String string) {
+        try {
+            Class clazz = Class.forName(string);
+            return clazz;
+        } catch (ClassNotFoundException ex) {
+            return null;
+        }
+    }
+
     private static boolean isNumeric(String string) {
         try {
             double d = Double.parseDouble(string);
@@ -55,16 +77,25 @@ public class CommandParser {
     }
 
     public MethodInvokationCommand parseMethodInvokationCommand(String command) {
-        String[] split = command.split("\\.");
-        String objectName = split[0].trim();
-        String[] split2 = split[1].split("\\(");
-        String methodName = split2[0].trim();
-        String parameterString = split2[1].trim();
-        parameterString = parameterString.substring(0, parameterString.indexOf(")")).trim();
+
+        System.out.println("Parsing a Method Command: " + command);
+
+        int lastIndex = command.substring(0, command.lastIndexOf("(")).lastIndexOf(".");
+
+        String objectName = command.substring(0, lastIndex);
+        String methodString = command.substring(lastIndex + 1);
+        String[] methodSplit = methodString.split("\\(");
+        String methodName = methodSplit[0];
+        String parameterString = methodSplit[1];
+        parameterString = parameterString.replaceAll("\\)", " ").trim();
+
+        System.out.println("objectName = " + objectName);
+        System.out.println("methodString = " + methodString);
+        System.out.println("methodName = " + methodName);
         System.out.println("parameterString = " + parameterString);
 
         Object[] parameters;
-        
+
         if (!parameterString.isEmpty()) {
             String[] parameterCommands = parameterString.split(",");
 
@@ -73,11 +104,14 @@ public class CommandParser {
             for (int i = 0; i < parameterCommands.length; i++) {
                 String parameterCommandString = parameterCommands[i].trim();
                 parameters[i] = parseCommand(parameterCommandString);
+                System.out.println("Parameter [" + (i + 1) + "] " + parameters[i]);
             }
-        }
-        else {
+        } else {
+            System.out.println("No Parameters");
             parameters = new Object[]{};
         }
+
+        System.out.println("Building Command...");
         return new MethodInvokationCommand(objectName, methodName, parameters);
     }
 
@@ -87,9 +121,18 @@ public class CommandParser {
     }
 
     private Command parseFieldAccessCommand(String command) {
-        String[] split = command.split("\\.");
-        String objectName = split[0];
-        String fieldName = split[1];
+
+        System.out.println("Parsing a Field Access Command: " + command);
+
+        int lastIndex = command.lastIndexOf(".");
+        String objectName = command.substring(0, lastIndex);
+        String fieldName = command.substring(lastIndex + 1);
+
+        System.out.println("objectName = " + objectName);
+        System.out.println("fieldName = " + fieldName);
+
+        System.out.println("Building Command...");
+
         return new FieldAccessCommand(objectName, fieldName);
     }
 

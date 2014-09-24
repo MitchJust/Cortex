@@ -26,6 +26,8 @@ public class TestMain {
         Cortex cortex = Cortex.getInstance();
         cortex.registerInterface(new ConsoleInterface());
         cortex.registerAsService(new TestMain());
+        cortex.registerAsService("System", System.class);
+        cortex.registerAsService("Class", Class.class);
         
     }
     

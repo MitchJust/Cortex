@@ -5,9 +5,8 @@
  */
 package com.bluescopesteel.cortex.commands;
 
+import com.bluescopesteel.cortex.InternalVariable;
 import java.lang.reflect.Field;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -27,16 +26,39 @@ public class FieldAccessCommand implements Command {
     public Object execute() throws Throwable {
 
         Object object = resolveObjectReference();
-        Class objectClass = object.getClass();
-        Field field = objectClass.getField(memberName);
-        Object fieldValue = field.get(object);
-        return fieldValue;
+        
+        //If we want the class field, return the Class object
+        if(memberName.contentEquals("class")) {
+            return object.getClass();
+        }
+        
+        
+        if (object instanceof Class) {
+            //Static member
+            System.out.println("A static member");
+            //Cast the object to class
+            Class objectClass = (Class) object;
+            //Find the field
+            Field field = objectClass.getField(memberName);
+            //Get the static value of the field
+            Object fieldValue = field.get(null);
+            return fieldValue;
+        } else {
+            Class objectClass = object.getClass();
+            Field field = objectClass.getField(memberName);
+            Object fieldValue = field.get(object);
+            return fieldValue;
+        }
 
     }
 
     private Object resolveObjectReference() throws Throwable {
-        ObjectReferenceAccessCommand command = new ObjectReferenceAccessCommand(objectName);
-        return command.execute();
+        Command command = new CommandParser().parseCommand(objectName);
+        Object object = command.execute();
+        if (object instanceof InternalVariable) {
+            return ((InternalVariable) object).getVariableValue();
+        }
+        return object;
     }
 
 }

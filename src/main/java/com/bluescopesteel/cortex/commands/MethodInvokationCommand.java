@@ -31,25 +31,14 @@ public class MethodInvokationCommand implements Command {
         Object object = resolveObjectReference();
         resolveParameters();
 
-//        Class objectClass = object.getClass();
-//        Class[] parameterTypes = new Class[parameters.length];
-//        for (int i = 0; i < parameters.length; i++) {
-//            parameterTypes[i] = parameters[i].getClass();
-//        }
-//        System.out.println("Finding the method");
-//
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(methodName).append("( ");
-//        for (Class parameterType : parameterTypes) {
-//            sb.append(parameterType.getSimpleName()).append(",");
-//
-//        }
-//        sb.append("\b)");
-//
-//        System.out.println(sb.toString());
-//        Method method = objectClass.getMethod(methodName, parameterTypes);
         Method method = findMethod(object, methodName, parameters);
 
+        if(object instanceof Class) {
+            System.out.println("A Static Method!");
+            object = null;
+            
+        }
+        
         if (method != null) {
 
             System.out.println("Invoking the method");
@@ -62,10 +51,9 @@ public class MethodInvokationCommand implements Command {
 
     }
 
-    static Method findMethod(Object object,
-            String methodName, Object[] params) {
+    static Method findMethod(Object object, String methodName, Object[] params) {
 
-        Class objectClass = object.getClass();
+        Class objectClass = object instanceof Class ? (Class) object : object.getClass();
 
         Method[] methods = objectClass.getMethods();
 
@@ -105,7 +93,7 @@ public class MethodInvokationCommand implements Command {
     }
 
     private Object resolveObjectReference() throws Throwable {
-        ObjectReferenceAccessCommand command = new ObjectReferenceAccessCommand(objectName);
+        Command command = new CommandParser().parseCommand(objectName);
         Object object = command.execute();
         if (object instanceof InternalVariable) {
             return ((InternalVariable) object).getVariableValue();
@@ -129,8 +117,14 @@ public class MethodInvokationCommand implements Command {
     }
 
     private static boolean isPrimitiveEquivalent(Class<?> primitive, Class<? extends Object> aClass) {
-        if (primitive == int.class) {
-            return (aClass == Integer.class);
+        if (primitive == int.class
+                || primitive == long.class
+                || primitive == float.class
+                || primitive == double.class) {
+            return (aClass == Integer.class
+                    || aClass == Long.class
+                    || aClass == Float.class
+                    || aClass == Double.class);
         }
 
         return false;
