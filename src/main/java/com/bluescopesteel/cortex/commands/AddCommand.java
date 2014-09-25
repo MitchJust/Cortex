@@ -5,6 +5,8 @@
  */
 package com.bluescopesteel.cortex.commands;
 
+import com.bluescopesteel.cortex.InternalVariable;
+
 /**
  *
  * @author Mitchell Just (Mitchell.Just@BlueScopeSteel.com)
@@ -24,8 +26,14 @@ public class AddCommand implements Command {
         while (left instanceof Command) {
             left = ((Command) left).execute();
         }
+        if (left instanceof InternalVariable) {
+            left = ((InternalVariable)left).getVariableValue();
+        }
         while (right instanceof Command) {
             right = ((Command) right).execute();
+        }
+        if (right instanceof InternalVariable) {
+            right = ((InternalVariable)right).getVariableValue();
         }
 
         Class leftClass = left.getClass();
@@ -33,16 +41,37 @@ public class AddCommand implements Command {
 
         String leftString = left.toString();
         String rightString = right.toString();
-        
+
         if (leftClass == String.class || rightClass == String.class) {
             return leftString + rightString;
         } else {
             Class highestPrecision = findHighestPrecisionClass(leftClass, rightClass);
-            double leftDouble = Double.parseDouble(leftString);
-            double rightDouble = Double.parseDouble(rightString);
-            
-            double sum = leftDouble + rightDouble;
-            return highestPrecision.cast(sum);
+            if (highestPrecision == Double.class || highestPrecision == Float.class) {
+                double leftDouble = Double.parseDouble(leftString);
+                double rightDouble = Double.parseDouble(rightString);
+
+                double sum = leftDouble + rightDouble;
+
+                if (highestPrecision == Double.class) {
+                    return sum;
+                } else {
+                    return (float) sum;
+                }
+
+            } else {
+                long leftLong = Long.parseLong(leftString);
+                long rightLong = Long.parseLong(rightString);
+
+                long sum = leftLong + rightLong;
+
+                if (highestPrecision == Long.class) {
+                    return sum;
+                } else {
+                    return (int) sum;
+                }
+
+            }
+
         }
 
     }

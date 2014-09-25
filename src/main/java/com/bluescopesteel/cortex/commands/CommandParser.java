@@ -35,11 +35,6 @@ public class CommandParser {
             System.out.println("A New Instance!");
             return parseNewInstanceCommand(command);
         }
-        
-        if(command.contains("+")) {
-            System.out.println("An Add Command!");
-            return parseNewAddCommand(command);
-        }
 
         //Check if there's an accessor (".")
         //Also make sure that this isn't part of a number
@@ -82,6 +77,11 @@ public class CommandParser {
             System.out.println("A Class!");
             System.out.println(command + " resolved to " + clazz);
             return new ClassReferenceCommand(clazz);
+        }
+
+        if (command.contains("+")) {
+            System.out.println("An Add Command!");
+            return parseNewAddCommand(command);
         }
 
         //Object Reference
@@ -298,12 +298,12 @@ public class CommandParser {
 
     private Command parseNewAddCommand(String command) {
         int firstPlus = command.indexOf("+");
-        String left = command.substring(0,firstPlus).trim();
-        String right = command.substring(firstPlus+1).trim();
-        
+        String left = command.substring(0, firstPlus).trim();
+        String right = command.substring(firstPlus + 1).trim();
+
         System.out.println("left = " + left);
         System.out.println("right = " + right);
-        
+
         return new AddCommand(parseCommand(left), parseCommand(right));
     }
 
