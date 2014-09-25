@@ -29,6 +29,7 @@ public class FieldAccessCommand implements Command {
         
         //If we want the class field, return the Class object
         if(memberName.contentEquals("class")) {
+            System.out.println("The Class");
             return object.getClass();
         }
         

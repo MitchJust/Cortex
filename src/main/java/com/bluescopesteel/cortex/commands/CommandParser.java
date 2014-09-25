@@ -5,6 +5,8 @@
  */
 package com.bluescopesteel.cortex.commands;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,7 +20,7 @@ public class CommandParser {
 //        if (!command.endsWith(";")) {
 //            return new InvalidCommand("Command Not Terminated Correctly");
 //        }
-
+        command = command.trim();
 //        command = command.substring(0, command.length() - 1).trim();
         System.out.println("Parsing Command: " + command);
 
@@ -30,7 +32,7 @@ public class CommandParser {
         //Check if there's an accessor (".")
         //Also make sure that this isn't part of a number
         //And that it's not a String
-        if (command.contains(".") && !isNumeric(command) && !command.startsWith("\"")) {
+        if (command.contains(".") && !isNumeric(command) && !(command.startsWith("\"") && command.endsWith("\""))) {
             //Memeber Access
             if (command.endsWith(")")) {
                 //Method
@@ -75,37 +77,72 @@ public class CommandParser {
         }
         return true;
     }
+    public static int findParameterClose(String methodCommand) {
+        System.out.println("methodCommand = " + methodCommand);
+        int bracketLevel = 1;
+        boolean isQuoteEnclosed = false;
+        
+        int index = methodCommand.length()-2;
+        
+        while(bracketLevel != 0) {
+            char currentChar = methodCommand.charAt(index);
+            
+            if(currentChar =='\"') {
+                isQuoteEnclosed = !isQuoteEnclosed;
+                
+            }
+            else if(currentChar == '(' && !isQuoteEnclosed) {
+                bracketLevel--;
+            }
+            else if(currentChar == ')' && !isQuoteEnclosed) {
+                bracketLevel++;
+            }
+//            
+//            System.out.println(currentChar + " " + isQuoteEnclosed + " " + bracketLevel);
+            
+            index--;
+        }
+        
+        return index;
+        
+    }
 
     public MethodInvokationCommand parseMethodInvokationCommand(String command) {
 
         System.out.println("Parsing a Method Command: " + command);
+        int parameterStartIndex = findParameterClose(command);
+        
+        String parameterString = command.substring(parameterStartIndex+1);
+        parameterString = parameterString.substring(1,parameterString.length()-1);
 
-        int lastIndex = command.substring(0, command.lastIndexOf("(")).lastIndexOf(".");
+        int lastIndex = command.substring(0, parameterStartIndex).lastIndexOf(".");
 
         String objectName = command.substring(0, lastIndex);
-        String methodString = command.substring(lastIndex + 1);
-        String[] methodSplit = methodString.split("\\(");
-        String methodName = methodSplit[0];
-        String parameterString = methodSplit[1];
-        parameterString = parameterString.replaceAll("\\)", " ").trim();
+        String methodName = command.substring(lastIndex + 1,parameterStartIndex+1);
 
         System.out.println("objectName = " + objectName);
-        System.out.println("methodString = " + methodString);
         System.out.println("methodName = " + methodName);
         System.out.println("parameterString = " + parameterString);
 
         Object[] parameters;
 
         if (!parameterString.isEmpty()) {
-            String[] parameterCommands = parameterString.split(",");
-
-            parameters = new Object[parameterCommands.length];
-
-            for (int i = 0; i < parameterCommands.length; i++) {
-                String parameterCommandString = parameterCommands[i].trim();
-                parameters[i] = parseCommand(parameterCommandString);
-                System.out.println("Parameter [" + (i + 1) + "] " + parameters[i]);
+//            String[] parameterCommands = parameterString.split(",");
+//
+//            parameters = new Object[parameterCommands.length];
+//
+//            for (int i = 0; i < parameterCommands.length; i++) {
+//                String parameterCommandString = parameterCommands[i].trim();
+//                parameters[i] = parseCommand(parameterCommandString);
+//                System.out.println("Parameter [" + (i + 1) + "] " + parameters[i]);
+//            }
+            
+            parameters = parseParameters(parameterString);
+            
+            for (int i = 0; i < parameters.length; i++) {
+                parameters[i] = parseCommand((String)parameters[i]);
             }
+            
         } else {
             System.out.println("No Parameters");
             parameters = new Object[]{};
@@ -113,6 +150,56 @@ public class CommandParser {
 
         System.out.println("Building Command...");
         return new MethodInvokationCommand(objectName, methodName, parameters);
+    }
+    
+    public Object[] parseParameters(String parameterString) {
+        boolean isQuoteEnclosed = false;
+        int bracketLevel = 0;
+        
+        List<Object> parameters = new ArrayList<>();
+        
+        int index = 0;
+        String currentParameter = new String();
+        
+        while(index < parameterString.length()) {
+            char currentChar = parameterString.charAt(index);
+//            System.out.println(currentChar);
+            if(currentChar =='\"') {
+                isQuoteEnclosed = !isQuoteEnclosed;
+                currentParameter += currentChar;
+                
+            }
+            else if(currentChar == '(' && !isQuoteEnclosed) {
+                bracketLevel++;
+                
+                currentParameter += currentChar;
+            }
+            else if(currentChar == ')' && !isQuoteEnclosed) {
+                bracketLevel--;
+                currentParameter += currentChar;
+            }
+            else if(currentChar == ',' && !isQuoteEnclosed && bracketLevel == 0) {
+                //New Parameter
+                System.out.println("Adding the parameter!");
+                parameters.add(currentParameter.trim());
+                currentParameter = new String();
+            }
+            else {
+                currentParameter += currentChar;
+            }
+//            System.out.println("currentParameter = " + currentParameter);
+//            System.out.println("isQuoteEnclosed = " + isQuoteEnclosed);
+//            System.out.println("bracketLevel = " + bracketLevel);
+            
+            index++;
+        }
+        
+        parameters.add(currentParameter.trim());
+        
+        Object[] parameterArray = new Object[parameters.size()];
+        parameterArray = parameters.toArray(parameterArray);
+        
+        return parameterArray;
     }
 
     public ObjectReferenceAccessCommand parseObjectReferenceCommand(String command) {

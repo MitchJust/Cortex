@@ -26,8 +26,6 @@ public class TestMain {
         Cortex cortex = Cortex.getInstance();
         cortex.registerInterface(new ConsoleInterface());
         cortex.registerAsService(new TestMain());
-        cortex.registerAsService("System", System.class);
-        cortex.registerAsService("Class", Class.class);
         
     }
     
@@ -38,10 +36,11 @@ public class TestMain {
     
     public void longOperation() {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(10000);
         } catch (InterruptedException ex) {
             Logger.getLogger(TestMain.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
     }
     
     public class InnerClass {

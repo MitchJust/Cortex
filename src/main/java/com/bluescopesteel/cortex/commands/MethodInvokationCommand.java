@@ -7,6 +7,7 @@ package com.bluescopesteel.cortex.commands;
 
 import com.bluescopesteel.cortex.InternalVariable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  *
@@ -33,29 +34,34 @@ public class MethodInvokationCommand implements Command {
 
         Method method = findMethod(object, methodName, parameters);
 
-        if(object instanceof Class) {
-            System.out.println("A Static Method!");
-            object = null;
-            
-        }
-        
         if (method != null) {
+            if (Modifier.isStatic(method.getModifiers())) {
+                System.out.println("A Static Method!");
+                object = null;
+            }
 
             System.out.println("Invoking the method");
             Object response = method.invoke(object, parameters);
             System.out.println("response = " + response);
             return response;
         } else {
-            throw new Exception("No Method Found: " + methodName);
+            Class c = (object instanceof Class) ? (Class) object : object.getClass();
+            throw new Exception("No Method Found: " + methodName + " in class " + c.getName());
         }
 
     }
 
     static Method findMethod(Object object, String methodName, Object[] params) {
 
-        Class objectClass = object instanceof Class ? (Class) object : object.getClass();
+        Class objectClass = object.getClass();
+        
+        System.out.println("Finding Method " + methodName + " in class " + objectClass);
 
         Method[] methods = objectClass.getMethods();
+        
+        for (Method method : methods) {
+            System.out.println(method.getName());
+        }
 
         methodLoop:
         for (Method method : methods) {
@@ -105,6 +111,7 @@ public class MethodInvokationCommand implements Command {
         System.out.println("Resolving Parameters");
         for (int i = 0; i < parameters.length; i++) {
             Object parameter = parameters[i];
+
             if (parameter instanceof Command) {
                 parameters[i] = ((Command) parameter).execute();
                 if (parameters[i] instanceof InternalVariable) {

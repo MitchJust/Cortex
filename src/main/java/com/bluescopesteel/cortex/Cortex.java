@@ -8,6 +8,8 @@ package com.bluescopesteel.cortex;
 import com.bluescopesteel.cortex.interfaces.CortexInterface;
 import com.bluescopesteel.cortex.translators.DefaultTranslator;
 import com.bluescopesteel.cortex.translators.Translator;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -18,7 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.log4j.Logger;
 import org.reflections.Reflections;
 
 /**
@@ -105,7 +106,7 @@ public class Cortex {
 
     public void registerAsService(String name, Object object) {
         services.put(name, object);
-        Logger.getLogger(Cortex.class.getName()).info("Registered Cortex Service: " + name);
+        System.out.println("Registered Cortex Service: " + name);
     }
 
     public List<String> getServices() {
@@ -140,9 +141,15 @@ public class Cortex {
         }
         Class objectClass = o.getClass();
 
-        Translator translator = translators.containsKey(objectClass) ? translators.get(objectClass) : defaultTranslator;
+        if (objectClass.isArray() || o instanceof Object[]) {
+            return translators.get(Object[].class).translate(o);
 
-        return translator.translate(o);
+        } else {
+            Translator translator = translators.containsKey(objectClass) ? translators.get(objectClass) : defaultTranslator;
+            return translator.translate(o);
+        }
+
+        
     }
 
     public InternalVariable getVariable(String objectName) {
@@ -157,6 +164,28 @@ public class Cortex {
         internalVariables.put(objectName, variable);
 
         return variable;
+    }
+
+    public String inspect(Object o) {
+
+        Class c = o.getClass();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Class: ").append(c.getName()).append("\n");
+
+        sb.append("Methods:\n");
+        Method[] methods = c.getMethods();
+
+        for (Method method : methods) {
+            sb.append(method.getName()).append("\n");
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            for (Class<?> parameterType : parameterTypes) {
+                sb.append("\t").append(parameterType.getName()).append("\n");
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
     }
 
 }
