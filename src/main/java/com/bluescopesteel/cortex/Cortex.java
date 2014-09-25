@@ -8,7 +8,7 @@ package com.bluescopesteel.cortex;
 import com.bluescopesteel.cortex.interfaces.CortexInterface;
 import com.bluescopesteel.cortex.translators.DefaultTranslator;
 import com.bluescopesteel.cortex.translators.Translator;
-import java.lang.reflect.Array;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -35,12 +35,13 @@ public class Cortex {
     private final Map<String, Object> services;
     private final Map<String, InternalVariable> internalVariables;
     private final Map<Class, Translator> translators;
+    private final List<String> searchPackages;
     private Translator defaultTranslator;
 
     public static synchronized Cortex getInstance() {
         if (theInstance == null) {
             theInstance = new Cortex();
-            theInstance.registerAsService(theInstance);
+            theInstance.addVariable("ctx", theInstance);
         }
 
         return theInstance;
@@ -50,8 +51,22 @@ public class Cortex {
         services = Collections.synchronizedMap(new HashMap<String, Object>());
         internalVariables = Collections.synchronizedMap(new HashMap<String, InternalVariable>());
         translators = Collections.synchronizedMap(new HashMap<Class, Translator>());
+        searchPackages = Collections.synchronizedList(new ArrayList<String>());
+        addSearchPackage("com.bluescopesteel.cortex");
+        addSearchPackage("java.lang");
+        addSearchPackage("java.util");
+        addSearchPackage("java.net");
+        addSearchPackage("java.io");
         addAllTranslators();
         defaultTranslator = new DefaultTranslator();
+    }
+
+    public final void addSearchPackage(String packageName) {
+        searchPackages.add(packageName);
+    }
+
+    public String[] getSearchPackages() {
+        return searchPackages.toArray(new String[searchPackages.size()]);
     }
 
     private void addAllTranslators() {
@@ -149,7 +164,6 @@ public class Cortex {
             return translator.translate(o);
         }
 
-        
     }
 
     public InternalVariable getVariable(String objectName) {
@@ -164,6 +178,7 @@ public class Cortex {
         internalVariables.put(objectName, variable);
 
         return variable;
+
     }
 
     public String inspect(Object o) {

@@ -25,7 +25,13 @@ public class TestMain {
     public static void main(String[] args) {
         Cortex cortex = Cortex.getInstance();
         cortex.registerInterface(new ConsoleInterface());
-        cortex.registerAsService(new TestMain());
+
+        TestMain test = new TestMain();
+        
+        cortex.addVariable("test", test);
+        
+        
+        cortex.addVariable("args", args);
         
     }
     

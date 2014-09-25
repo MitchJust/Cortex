@@ -17,7 +17,7 @@ public class InternalVariableTranslator implements Translator<InternalVariable>{
 
     @Override
     public String translate(InternalVariable object) {
-        return object.getVariableName() + " = " + Cortex.getInstance().translate(object.getVariableValue());
+        return object.getVariableName() + " = " + Cortex.getInstance().translate(object.getVariableValueNoLink());
     }
 
 }

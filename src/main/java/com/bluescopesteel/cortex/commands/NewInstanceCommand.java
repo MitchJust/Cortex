@@ -26,7 +26,9 @@ public class NewInstanceCommand implements Command {
     @Override
     public Object execute() throws Throwable {
         //Find the class
-        Class objectClass = Class.forName(className);
+//        Class objectClass = Class.forName(className);
+        Command command = new CommandParser().parseCommand(className);
+        Class objectClass = (Class) command.execute();
 
         //Resolve the parameters
         resolveParameters();

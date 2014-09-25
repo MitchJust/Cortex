@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.bluescopesteel.cortex;
 
 /**
@@ -26,15 +25,21 @@ public class InternalVariable {
     }
 
     public Object getVariableValue() {
+        if (variableValue instanceof InternalVariable) {
+            return ((InternalVariable) variableValue).getVariableValue();
+        } else {
+            return variableValue;
+        }
+    }
+    
+    public Object getVariableValueNoLink() {
         return variableValue;
     }
 
     public void setVariableValue(Object variableValue) {
         this.variableValue = variableValue;
     }
-    
-    
-    
+
     String variableName;
     Object variableValue;
 }

@@ -5,6 +5,7 @@
  */
 package com.bluescopesteel.cortex.commands;
 
+import com.bluescopesteel.cortex.Cortex;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,9 @@ import java.util.List;
 public class CommandParser {
 
     public Command parseCommand(String command) {
+
+        Cortex cortex = Cortex.getInstance();
+
 //        if (!command.endsWith(";")) {
 //            return new InvalidCommand("Command Not Terminated Correctly");
 //        }
@@ -26,8 +30,8 @@ public class CommandParser {
             System.out.println("A Set Value!");
             return parseSetValueCommand(command);
         }
-        
-        if(command.startsWith("new ")) {
+
+        if (command.startsWith("new ")) {
             System.out.println("A New Instance!");
             return parseNewInstanceCommand(command);
         }
@@ -45,6 +49,7 @@ public class CommandParser {
 
                 //Is this a class reference?
                 Class clazz = getClassReference(command);
+
                 if (clazz != null) {
                     System.out.println("A Class!");
                     return new ClassReferenceCommand(clazz);
@@ -55,6 +60,23 @@ public class CommandParser {
 
                 return parseFieldAccessCommand(command);
             }
+        }
+
+        //Might be a searchable package class shortcut?
+        System.out.println("Searching packages...");
+        //Try our search packages
+        Class clazz = null;
+        String[] searchPackages = cortex.getSearchPackages();
+        for (String searchPackage : searchPackages) {
+            clazz = getClassReference(searchPackage + "." + command);
+            if (clazz != null) {
+                break;
+            }
+        }
+        if (clazz != null) {
+            System.out.println("A Class!");
+            System.out.println(command + " resolved to " + clazz);
+            return new ClassReferenceCommand(clazz);
         }
 
         //Object Reference
@@ -68,6 +90,7 @@ public class CommandParser {
             Class clazz = Class.forName(string);
             return clazz;
         } catch (ClassNotFoundException ex) {
+
             return null;
         }
     }
@@ -80,48 +103,47 @@ public class CommandParser {
         }
         return true;
     }
+
     public static int findParameterClose(String methodCommand) {
         System.out.println("methodCommand = " + methodCommand);
         int bracketLevel = 1;
         boolean isQuoteEnclosed = false;
-        
-        int index = methodCommand.length()-2;
-        
-        while(bracketLevel != 0) {
+
+        int index = methodCommand.length() - 2;
+
+        while (bracketLevel != 0) {
             char currentChar = methodCommand.charAt(index);
-            
-            if(currentChar =='\"') {
+
+            if (currentChar == '\"') {
                 isQuoteEnclosed = !isQuoteEnclosed;
-                
-            }
-            else if(currentChar == '(' && !isQuoteEnclosed) {
+
+            } else if (currentChar == '(' && !isQuoteEnclosed) {
                 bracketLevel--;
-            }
-            else if(currentChar == ')' && !isQuoteEnclosed) {
+            } else if (currentChar == ')' && !isQuoteEnclosed) {
                 bracketLevel++;
             }
 //            
 //            System.out.println(currentChar + " " + isQuoteEnclosed + " " + bracketLevel);
-            
+
             index--;
         }
-        
+
         return index;
-        
+
     }
 
     public MethodInvokationCommand parseMethodInvokationCommand(String command) {
 
         System.out.println("Parsing a Method Command: " + command);
         int parameterStartIndex = findParameterClose(command);
-        
-        String parameterString = command.substring(parameterStartIndex+1);
-        parameterString = parameterString.substring(1,parameterString.length()-1);
+
+        String parameterString = command.substring(parameterStartIndex + 1);
+        parameterString = parameterString.substring(1, parameterString.length() - 1);
 
         int lastIndex = command.substring(0, parameterStartIndex).lastIndexOf(".");
 
         String objectName = command.substring(0, lastIndex);
-        String methodName = command.substring(lastIndex + 1,parameterStartIndex+1);
+        String methodName = command.substring(lastIndex + 1, parameterStartIndex + 1);
 
         System.out.println("objectName = " + objectName);
         System.out.println("methodName = " + methodName);
@@ -139,13 +161,13 @@ public class CommandParser {
 //                parameters[i] = parseCommand(parameterCommandString);
 //                System.out.println("Parameter [" + (i + 1) + "] " + parameters[i]);
 //            }
-            
+
             parameters = parseParameters(parameterString);
-            
+
             for (int i = 0; i < parameters.length; i++) {
-                parameters[i] = parseCommand((String)parameters[i]);
+                parameters[i] = parseCommand((String) parameters[i]);
             }
-            
+
         } else {
             System.out.println("No Parameters");
             parameters = new Object[]{};
@@ -154,54 +176,50 @@ public class CommandParser {
         System.out.println("Building Command...");
         return new MethodInvokationCommand(objectName, methodName, parameters);
     }
-    
+
     public Object[] parseParameters(String parameterString) {
         boolean isQuoteEnclosed = false;
         int bracketLevel = 0;
-        
+
         List<Object> parameters = new ArrayList<>();
-        
+
         int index = 0;
         String currentParameter = new String();
-        
-        while(index < parameterString.length()) {
+
+        while (index < parameterString.length()) {
             char currentChar = parameterString.charAt(index);
 //            System.out.println(currentChar);
-            if(currentChar =='\"') {
+            if (currentChar == '\"') {
                 isQuoteEnclosed = !isQuoteEnclosed;
                 currentParameter += currentChar;
-                
-            }
-            else if(currentChar == '(' && !isQuoteEnclosed) {
+
+            } else if (currentChar == '(' && !isQuoteEnclosed) {
                 bracketLevel++;
-                
+
                 currentParameter += currentChar;
-            }
-            else if(currentChar == ')' && !isQuoteEnclosed) {
+            } else if (currentChar == ')' && !isQuoteEnclosed) {
                 bracketLevel--;
                 currentParameter += currentChar;
-            }
-            else if(currentChar == ',' && !isQuoteEnclosed && bracketLevel == 0) {
+            } else if (currentChar == ',' && !isQuoteEnclosed && bracketLevel == 0) {
                 //New Parameter
                 System.out.println("Adding the parameter!");
                 parameters.add(currentParameter.trim());
                 currentParameter = new String();
-            }
-            else {
+            } else {
                 currentParameter += currentChar;
             }
 //            System.out.println("currentParameter = " + currentParameter);
 //            System.out.println("isQuoteEnclosed = " + isQuoteEnclosed);
 //            System.out.println("bracketLevel = " + bracketLevel);
-            
+
             index++;
         }
-        
+
         parameters.add(currentParameter.trim());
-        
+
         Object[] parameterArray = new Object[parameters.size()];
         parameterArray = parameters.toArray(parameterArray);
-        
+
         return parameterArray;
     }
 
@@ -241,35 +259,35 @@ public class CommandParser {
     }
 
     private Command parseNewInstanceCommand(String command) {
-        String constructorString = command.replace("new ", "").trim();
+        String constructorString = command.replaceFirst("new ", "").trim();
         System.out.println("constructorString = " + constructorString);
-        
-        int parameterStartIndex = findParameterClose(constructorString);
-        
-        String parameterString = constructorString.substring(parameterStartIndex+1);
-        parameterString = parameterString.substring(1,parameterString.length()-1);
 
-        String className = constructorString.substring(0,parameterStartIndex+1);
-        
+        int parameterStartIndex = findParameterClose(constructorString);
+
+        String parameterString = constructorString.substring(parameterStartIndex + 1);
+        parameterString = parameterString.substring(1, parameterString.length() - 1);
+
+        String className = constructorString.substring(0, parameterStartIndex + 1);
+
         System.out.println("className = " + className);
         System.out.println("parameterString = " + parameterString);
-        
-         Object[] parameters;
+
+        Object[] parameters;
 
         if (!parameterString.isEmpty()) {
-            
+
             parameters = parseParameters(parameterString);
-            
+
             for (int i = 0; i < parameters.length; i++) {
-                parameters[i] = parseCommand((String)parameters[i]);
+                parameters[i] = parseCommand((String) parameters[i]);
             }
-            
+
         } else {
             System.out.println("No Parameters");
             parameters = new Object[]{};
         }
-        
-        return new NewInstanceCommand(className,parameters);
+
+        return new NewInstanceCommand(className, parameters);
 
     }
 

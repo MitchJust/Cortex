@@ -8,6 +8,8 @@ package com.bluescopesteel.cortex.commands;
 import com.bluescopesteel.cortex.InternalVariable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.ArrayList;
 
 /**
  *
@@ -40,9 +42,13 @@ public class MethodInvokationCommand implements Command {
                 object = null;
             }
 
-            System.out.println("Invoking the method");
+            System.out.println("Invoking the method...");
+            System.out.print("");
             Object response = method.invoke(object, parameters);
+            System.out.println("Done");
             System.out.println("response = " + response);
+            
+            
             return response;
         } else {
             Class c = (object instanceof Class) ? (Class) object : object.getClass();
@@ -58,11 +64,6 @@ public class MethodInvokationCommand implements Command {
         System.out.println("Finding Method " + methodName + " in class " + objectClass);
 
         Method[] methods = objectClass.getMethods();
-
-        for (Method method : methods) {
-            System.out.println(method.getName());
-
-        }
 
         methodLoop:
         for (Method method : methods) {
@@ -133,6 +134,9 @@ public class MethodInvokationCommand implements Command {
                     || aClass == Long.class
                     || aClass == Float.class
                     || aClass == Double.class);
+        }
+        if(primitive == boolean.class) {
+            return aClass == Boolean.class;
         }
 
         return false;
