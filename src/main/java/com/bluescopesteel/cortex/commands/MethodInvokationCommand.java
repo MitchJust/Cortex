@@ -53,14 +53,15 @@ public class MethodInvokationCommand implements Command {
 
     static Method findMethod(Object object, String methodName, Object[] params) {
 
-        Class objectClass = object.getClass();
-        
+        Class objectClass = object instanceof Class ? (Class) object : object.getClass();
+
         System.out.println("Finding Method " + methodName + " in class " + objectClass);
 
         Method[] methods = objectClass.getMethods();
-        
+
         for (Method method : methods) {
             System.out.println(method.getName());
+
         }
 
         methodLoop:

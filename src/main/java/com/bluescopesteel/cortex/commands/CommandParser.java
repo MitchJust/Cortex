@@ -7,8 +7,6 @@ package com.bluescopesteel.cortex.commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -27,6 +25,11 @@ public class CommandParser {
         if (command.contains("=")) {
             System.out.println("A Set Value!");
             return parseSetValueCommand(command);
+        }
+        
+        if(command.startsWith("new ")) {
+            System.out.println("A New Instance!");
+            return parseNewInstanceCommand(command);
         }
 
         //Check if there's an accessor (".")
@@ -235,6 +238,39 @@ public class CommandParser {
         System.out.println(targetCommand + " = " + valueCommand);
 
         return new SetValueCommand(targetCommand, valueCommand);
+    }
+
+    private Command parseNewInstanceCommand(String command) {
+        String constructorString = command.replace("new ", "").trim();
+        System.out.println("constructorString = " + constructorString);
+        
+        int parameterStartIndex = findParameterClose(constructorString);
+        
+        String parameterString = constructorString.substring(parameterStartIndex+1);
+        parameterString = parameterString.substring(1,parameterString.length()-1);
+
+        String className = constructorString.substring(0,parameterStartIndex+1);
+        
+        System.out.println("className = " + className);
+        System.out.println("parameterString = " + parameterString);
+        
+         Object[] parameters;
+
+        if (!parameterString.isEmpty()) {
+            
+            parameters = parseParameters(parameterString);
+            
+            for (int i = 0; i < parameters.length; i++) {
+                parameters[i] = parseCommand((String)parameters[i]);
+            }
+            
+        } else {
+            System.out.println("No Parameters");
+            parameters = new Object[]{};
+        }
+        
+        return new NewInstanceCommand(className,parameters);
+
     }
 
 }
