@@ -27,13 +27,13 @@ public class AddCommand implements Command {
             left = ((Command) left).execute();
         }
         if (left instanceof InternalVariable) {
-            left = ((InternalVariable)left).getVariableValue();
+            left = ((InternalVariable) left).getVariableValue();
         }
         while (right instanceof Command) {
             right = ((Command) right).execute();
         }
         if (right instanceof InternalVariable) {
-            right = ((InternalVariable)right).getVariableValue();
+            right = ((InternalVariable) right).getVariableValue();
         }
 
         Class leftClass = left.getClass();

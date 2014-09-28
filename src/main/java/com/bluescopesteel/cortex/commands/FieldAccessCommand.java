@@ -22,21 +22,28 @@ public class FieldAccessCommand implements Command {
         this.memberName = memberName;
     }
 
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public String getMemberName() {
+        return memberName;
+    }
+
     @Override
     public Object execute() throws Throwable {
 
-        Object object = resolveObjectReference();
-        
+        Object object = ObjectResolver.resolveObjectReference(objectName);
+
         //If we want the class field, return the Class object
-        if(memberName.contentEquals("class")) {
-            System.out.println("The Class");
+        if (memberName.contentEquals("class")) {
+            // System.out.println("The Class");
             return object.getClass();
         }
-        
-        
+
         if (object instanceof Class) {
             //Static member
-            System.out.println("A static member");
+            // System.out.println("A static member");
             //Cast the object to class
             Class objectClass = (Class) object;
             //Find the field
@@ -51,15 +58,6 @@ public class FieldAccessCommand implements Command {
             return fieldValue;
         }
 
-    }
-
-    private Object resolveObjectReference() throws Throwable {
-        Command command = new CommandParser().parseCommand(objectName);
-        Object object = command.execute();
-        if (object instanceof InternalVariable) {
-            return ((InternalVariable) object).getVariableValue();
-        }
-        return object;
     }
 
 }

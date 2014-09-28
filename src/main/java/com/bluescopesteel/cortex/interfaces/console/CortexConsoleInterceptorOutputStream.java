@@ -34,7 +34,7 @@ public class CortexConsoleInterceptorOutputStream extends OutputStream {
             Logger.getLogger(CortexConsoleInterceptorOutputStream.class.getName()).error(ex);
         }
     }
-    
+
     private void writeBackspaces() {
         try {
             passthrough.write(backspaces.getBytes());
@@ -43,8 +43,6 @@ public class CortexConsoleInterceptorOutputStream extends OutputStream {
         }
     }
 
-    
-    
     @Override
     public void write(int i) throws IOException {
         if (i == '\n') {
@@ -57,8 +55,7 @@ public class CortexConsoleInterceptorOutputStream extends OutputStream {
                 writeBackspaces();
                 passthrough.write(i);
                 isNewLine = false;
-            }
-            else {
+            } else {
                 passthrough.write(i);
             }
         }

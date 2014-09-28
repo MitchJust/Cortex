@@ -8,7 +8,6 @@ package com.bluescopesteel.cortex;
 import com.bluescopesteel.cortex.interfaces.CortexInterface;
 import com.bluescopesteel.cortex.translators.DefaultTranslator;
 import com.bluescopesteel.cortex.translators.Translator;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.bluescopesteel.cortex.translators;
 
 /**
@@ -12,5 +11,6 @@ package com.bluescopesteel.cortex.translators;
  * @param <T> The class this translator translates
  */
 public interface Translator<T> {
+
     public String translate(T object);
 }

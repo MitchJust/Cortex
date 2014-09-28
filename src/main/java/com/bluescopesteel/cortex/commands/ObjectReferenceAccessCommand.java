@@ -22,7 +22,7 @@ public class ObjectReferenceAccessCommand implements Command {
 
     @Override
     public Object execute() throws Throwable {
-        System.out.println("Resolving Object Reference");
+        // System.out.println("Resolving Object Reference");
         Cortex theCortex = Cortex.getInstance();
 
         if (objectName.equalsIgnoreCase("null")) {
@@ -34,21 +34,21 @@ public class ObjectReferenceAccessCommand implements Command {
 
         Object service = theCortex.getService(objectName);
         if (service != null) {
-            System.out.println("Found a service");
+            // System.out.println("Found a service");
             return service;
         }
 
         //maybe its a variable?
         InternalVariable variable = theCortex.getVariable(objectName);
         if (variable != null) {
-            System.out.println("Found a variable");
+            // System.out.println("Found a variable");
             return variable;
         }
 
         //maybe it's a primitive?
         //String?
         if (objectName.startsWith("\"") && objectName.endsWith("\"")) {
-            System.out.println("String");
+            // System.out.println("String");
             return objectName.substring(1, objectName.length() - 1);
         }
 
@@ -73,7 +73,7 @@ public class ObjectReferenceAccessCommand implements Command {
         }
 
         //Last option is to create a variable;
-        System.out.println("Creating a new variable: " + objectName);
+        // System.out.println("Creating a new variable: " + objectName);
         if (objectName.contains(" ")) {
             throw new Exception("Invalid Characters for Variable Name");
         }

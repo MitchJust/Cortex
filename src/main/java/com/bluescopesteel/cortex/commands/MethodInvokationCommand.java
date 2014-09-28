@@ -8,8 +8,6 @@ package com.bluescopesteel.cortex.commands;
 import com.bluescopesteel.cortex.InternalVariable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.ArrayList;
 
 /**
  *
@@ -30,23 +28,23 @@ public class MethodInvokationCommand implements Command {
     @Override
     public Object execute() throws Throwable {
 
-        System.out.println("Finding the object");
-        Object object = resolveObjectReference();
+        // System.out.println("Finding the object");
+        Object object = ObjectResolver.resolveObjectReference(objectName);
         resolveParameters();
 
         Method method = findMethod(object, methodName, parameters);
 
         if (method != null) {
             if (Modifier.isStatic(method.getModifiers())) {
-                System.out.println("A Static Method!");
+                // System.out.println("A Static Method!");
                 object = null;
             }
 
-            System.out.println("Invoking the method...");
-            System.out.print("");
+            // System.out.println("Invoking the method...");
+            // System.out.print("");
             Object response = method.invoke(object, parameters);
-            System.out.println("Done");
-            System.out.println("response = " + response);
+            // System.out.println("Done");
+            // System.out.println("response = " + response);
             
             
             return response;
@@ -61,26 +59,26 @@ public class MethodInvokationCommand implements Command {
 
         Class objectClass = object instanceof Class ? (Class) object : object.getClass();
 
-        System.out.println("Finding Method " + methodName + " in class " + objectClass);
+        // System.out.println("Finding Method " + methodName + " in class " + objectClass);
 
         Method[] methods = objectClass.getMethods();
 
         methodLoop:
         for (Method method : methods) {
             if (method.getName().contentEquals(methodName)) {
-                System.out.println("Found a matching method name");
+                // System.out.println("Found a matching method name");
 
                 Class<?>[] parameterTypes = method.getParameterTypes();
 
                 if (parameterTypes.length == params.length) {
-                    System.out.println("Right number of params!");
+                    // System.out.println("Right number of params!");
                     for (int i = 0; i < parameterTypes.length; i++) {
 
-                        System.out.println(parameterTypes[i].getSimpleName() + " " + params[i].getClass().getSimpleName());
+                        // System.out.println(parameterTypes[i].getSimpleName() + " " + params[i].getClass().getSimpleName());
 
                         //check for primitive
                         if (parameterTypes[i].isPrimitive()) {
-                            System.out.println("This is a primitive");
+                            // System.out.println("This is a primitive");
                             if (!isPrimitiveEquivalent(parameterTypes[i], params[i].getClass())) {
                                 continue methodLoop;
                             }
@@ -90,27 +88,18 @@ public class MethodInvokationCommand implements Command {
                             }
                         }
                     }
-                    System.out.println("All params match!");
+                    // System.out.println("All params match!");
                     return method;
                 }
             }
         }
 
-        System.out.println("No methods matched");
+        // System.out.println("No methods matched");
         return null;
     }
 
-    private Object resolveObjectReference() throws Throwable {
-        Command command = new CommandParser().parseCommand(objectName);
-        Object object = command.execute();
-        if (object instanceof InternalVariable) {
-            return ((InternalVariable) object).getVariableValue();
-        }
-        return object;
-    }
-
     private void resolveParameters() throws Throwable {
-        System.out.println("Resolving Parameters");
+        // System.out.println("Resolving Parameters");
         for (int i = 0; i < parameters.length; i++) {
             Object parameter = parameters[i];
 
@@ -121,7 +110,7 @@ public class MethodInvokationCommand implements Command {
                 }
             }
 
-            System.out.println("Parameter " + i + " {" + parameters[i].getClass().getSimpleName() + "} " + parameters[i]);
+            // System.out.println("Parameter " + i + " {" + parameters[i].getClass().getSimpleName() + "} " + parameters[i]);
         }
     }
 

@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.bluescopesteel.cortex.translators;
 
 import com.bluescopesteel.cortex.Cortex;
@@ -13,7 +12,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @author Mitchell Just (Mitchell.Just@BlueScopeSteel.com)
  */
-public class InvocationTargetExceptionTranslator implements Translator<InvocationTargetException>{
+public class InvocationTargetExceptionTranslator implements Translator<InvocationTargetException> {
 
     @Override
     public String translate(InvocationTargetException object) {

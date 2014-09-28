@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.bluescopesteel.cortex.translators;
 
 import com.bluescopesteel.cortex.Cortex;
@@ -12,7 +11,7 @@ import com.bluescopesteel.cortex.Cortex;
  *
  * @author Mitchell Just (Mitchell.Just@BlueScopeSteel.com)
  */
-public class CortexTranslator implements Translator<Cortex>{
+public class CortexTranslator implements Translator<Cortex> {
 
     @Override
     public String translate(Cortex object) {

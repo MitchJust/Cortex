@@ -19,6 +19,8 @@ public class TestMain {
     
     public InnerClass inner = new InnerClass();
     
+    public Object object;
+    
     /**
      * @param args the command line arguments
      */

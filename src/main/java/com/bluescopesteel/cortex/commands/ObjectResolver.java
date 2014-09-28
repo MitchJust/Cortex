@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.bluescopesteel.cortex.commands;
 
 import com.bluescopesteel.cortex.InternalVariable;
@@ -13,6 +12,7 @@ import com.bluescopesteel.cortex.InternalVariable;
  * @author maj890
  */
 public class ObjectResolver {
+
     public static Object resolveObjectReference(String objectReference) throws Throwable {
         Command command = new CommandParser().parseCommand(objectReference);
         Object object = command.execute();

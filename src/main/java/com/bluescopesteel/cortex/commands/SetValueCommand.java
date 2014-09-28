@@ -40,7 +40,7 @@ public class SetValueCommand implements Command {
         } else if (target instanceof FieldAccessCommand) {
             System.out.println("Setting a field");
             setFieldValue((FieldAccessCommand) target, value);
-            target = ((Command)target).execute();
+            target = ((Command) target).execute();
         } else {
             System.out.println("Not Internal! Don't know how to do this yet! :(");
         }
@@ -54,5 +54,4 @@ public class SetValueCommand implements Command {
         field.set(object, value);
     }
 
-    
 }

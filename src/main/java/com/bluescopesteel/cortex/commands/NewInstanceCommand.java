@@ -7,7 +7,6 @@ package com.bluescopesteel.cortex.commands;
 
 import com.bluescopesteel.cortex.InternalVariable;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 
 /**
  *
@@ -38,16 +37,15 @@ public class NewInstanceCommand implements Command {
         }
 
         Constructor constructor = findConstructor(objectClass, parameters);
-        System.out.println("Found constructor, Creating new instance");
+        // System.out.println("Found constructor, Creating new instance");
         Object instance = constructor.newInstance(parameters);
-        
+
         return instance;
     }
 
     static Constructor findConstructor(Class objectClass, Object[] params) {
 
-        System.out.println("Finding Constructor in class " + objectClass);
-
+        // System.out.println("Finding Constructor in class " + objectClass);
         Constructor[] methods = objectClass.getConstructors();
 
         methodLoop:
@@ -56,14 +54,13 @@ public class NewInstanceCommand implements Command {
             Class<?>[] parameterTypes = method.getParameterTypes();
 
             if (parameterTypes.length == params.length) {
-                System.out.println("Right number of params!");
+                // System.out.println("Right number of params!");
                 for (int i = 0; i < parameterTypes.length; i++) {
 
-                    System.out.println(parameterTypes[i].getSimpleName() + " " + params[i].getClass().getSimpleName());
-
+                    // System.out.println(parameterTypes[i].getSimpleName() + " " + params[i].getClass().getSimpleName());
                     //check for primitive
                     if (parameterTypes[i].isPrimitive()) {
-                        System.out.println("This is a primitive");
+                        // System.out.println("This is a primitive");
                         if (!isPrimitiveEquivalent(parameterTypes[i], params[i].getClass())) {
                             continue methodLoop;
                         }
@@ -73,18 +70,18 @@ public class NewInstanceCommand implements Command {
                         }
                     }
                 }
-                System.out.println("All params match!");
+                // System.out.println("All params match!");
                 return method;
 
             }
         }
 
-        System.out.println("No methods matched");
+        // System.out.println("No methods matched");
         return null;
     }
 
     private void resolveParameters() throws Throwable {
-        System.out.println("Resolving Parameters");
+        // System.out.println("Resolving Parameters");
         for (int i = 0; i < parameters.length; i++) {
             Object parameter = parameters[i];
 
@@ -95,7 +92,7 @@ public class NewInstanceCommand implements Command {
                 }
             }
 
-            System.out.println("Parameter " + i + " {" + parameters[i].getClass().getSimpleName() + "} " + parameters[i]);
+            // System.out.println("Parameter " + i + " {" + parameters[i].getClass().getSimpleName() + "} " + parameters[i]);
         }
     }
 
