@@ -19,12 +19,15 @@ public class CortexConsoleInterceptorOutputStream extends OutputStream {
     private boolean isNewLine;
     private final String cortexPrefix = "ctx-> ";
     private final String backspaces = "\b\b\b\b\b\b";
+    private final String newLine;
+    private final char[] buffer;
 
     public CortexConsoleInterceptorOutputStream(OutputStream passthrough) {
         this.passthrough = passthrough;
         isNewLine = true;
         writePrefix();
-
+        newLine = System.lineSeparator();
+        buffer = new char[newLine.length()];
     }
 
     private void writePrefix() {
@@ -42,10 +45,27 @@ public class CortexConsoleInterceptorOutputStream extends OutputStream {
             Logger.getLogger(CortexConsoleInterceptorOutputStream.class.getName()).error(ex);
         }
     }
+    
+    private void pushToBuffer(char c) {
+        for(int i=buffer.length-1;i>0;i--) {
+            buffer[i] = buffer[i-1];
+        }
+        buffer[0] = c;
+    }
+    
+    private boolean bufferContainsNewLine() {
+        for (int i = buffer.length-1; i >=0; i--) {
+            if(buffer[i] != newLine.charAt((buffer.length-1)-i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public void write(int i) throws IOException {
-        if (i == '\n') {
+        pushToBuffer((char)i);
+        if (bufferContainsNewLine()) {
             isNewLine = true;
             passthrough.write(i);
             writePrefix();
