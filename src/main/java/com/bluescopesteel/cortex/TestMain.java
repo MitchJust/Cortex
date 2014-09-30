@@ -6,6 +6,7 @@
 package com.bluescopesteel.cortex;
 
 import com.bluescopesteel.cortex.interfaces.console.ConsoleInterface;
+import java.io.ObjectInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,11 +17,14 @@ import java.util.logging.Logger;
 public class TestMain {
 
     public int myInt = 6;
-    
+
     public InnerClass inner = new InnerClass();
-    
+
     public Object object;
+
+    private float temp = 235235.23432f;
     
+
     /**
      * @param args the command line arguments
      */
@@ -29,33 +33,34 @@ public class TestMain {
         cortex.registerInterface(new ConsoleInterface());
 
         TestMain test = new TestMain();
-        
+
         cortex.addVariable("test", test);
-        
-        
+
         cortex.addVariable("args", args);
-        
+
     }
-    
-    public String getString(){
+
+    public String getString() {
         return "String@@#@$";
-        
+
     }
-    
+
     public void longOperation() {
         try {
             Thread.sleep(10000);
         } catch (InterruptedException ex) {
             Logger.getLogger(TestMain.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
-    
+
     public class InnerClass {
+
         public String testString = "testst";
-        public String getString() { 
+
+        public String getString() {
             return "Method!";
         }
     }
-    
+
 }

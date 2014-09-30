@@ -46,37 +46,24 @@ public class CommandParser {
                 // System.out.println("A Method!");
                 return parseMethodInvokationCommand(command);
             } else {
-
                 //Is this a class reference?
-                Class clazz = getClassReference(command);
+                Class clazz = cortex.resolveClass(command);
 
                 if (clazz != null) {
                     // System.out.println("A Class!");
                     return new ClassReferenceCommand(clazz);
                 }
                 //Field
-
                 // System.out.println("A Field!");
                 return parseFieldAccessCommand(command);
             }
         }
 
-        //Might be a searchable package class shortcut?
-        // System.out.println("Searching packages...");
-        //Try our search packages
-        Class clazz = null;
-        String[] searchPackages = cortex.getSearchPackages();
-        for (String searchPackage : searchPackages) {
+        //Is this a shortcut class reference?
+        Class clazz = cortex.resolveClass(command);
 
-            clazz = getClassReference(searchPackage + "." + command);
-            if (clazz != null) {
-                break;
-            }
-
-        }
         if (clazz != null) {
             // System.out.println("A Class!");
-            // System.out.println(command + " resolved to " + clazz);
             return new ClassReferenceCommand(clazz);
         }
 
@@ -89,17 +76,6 @@ public class CommandParser {
         // // System.out.println("An Object Reference!");
         return parseObjectReferenceCommand(command);
 
-    }
-
-    private static Class getClassReference(String string) {
-        try {
-            Class clazz = Class.forName(string);
-            NoClassDefFoundError s;
-            return clazz;
-        } catch (Throwable ex) {
-
-            return null;
-        }
     }
 
     private static boolean isNumeric(String string) {

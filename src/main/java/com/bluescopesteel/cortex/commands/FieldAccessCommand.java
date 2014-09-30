@@ -47,13 +47,15 @@ public class FieldAccessCommand implements Command {
             //Cast the object to class
             Class objectClass = (Class) object;
             //Find the field
-            Field field = objectClass.getField(memberName);
+            Field field = objectClass.getDeclaredField(memberName);
+            field.setAccessible(true);
             //Get the static value of the field
             Object fieldValue = field.get(null);
             return fieldValue;
         } else {
             Class objectClass = object.getClass();
-            Field field = objectClass.getField(memberName);
+            Field field = objectClass.getDeclaredField(memberName);
+            field.setAccessible(true);
             Object fieldValue = field.get(object);
             return fieldValue;
         }

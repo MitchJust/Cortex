@@ -8,9 +8,16 @@ package com.bluescopesteel.cortex;
 import com.bluescopesteel.cortex.interfaces.CortexInterface;
 import com.bluescopesteel.cortex.translators.DefaultTranslator;
 import com.bluescopesteel.cortex.translators.Translator;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.reflections.Reflections;
 
 /**
@@ -36,6 +44,7 @@ public class Cortex {
     private final Map<Class, Translator> translators;
     private final List<String> searchPackages;
     private Translator defaultTranslator;
+    private CortexClassLoader classLoader;
 
     public static synchronized Cortex getInstance() {
         if (theInstance == null) {
@@ -57,7 +66,32 @@ public class Cortex {
         addSearchPackage("java.net");
         addSearchPackage("java.io");
         addAllTranslators();
+        classLoader = new CortexClassLoader();
         defaultTranslator = new DefaultTranslator();
+    }
+
+    public Class resolveClass(String className) {
+        Class clazz;
+
+        try {
+            clazz = classLoader.loadClass(className);
+            return clazz;
+        } catch (ClassNotFoundException ex) {
+
+            if (!className.contains(".") && Character.isUpperCase(className.charAt(0))) {
+                System.out.println("Searching packages...");
+                for (String searchPackage : searchPackages) {
+                    try {
+                        clazz = classLoader.loadClass(searchPackage + "." + className);
+                        return clazz;
+                    } catch (ClassNotFoundException ex1) {
+                        
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     public final void addSearchPackage(String packageName) {
@@ -83,7 +117,7 @@ public class Cortex {
 
             try {
                 Translator instance = translatorClass.newInstance();
-                System.out.println("Registering Translator: [" + genericParameter.getSimpleName() + " " + translatorClass.getSimpleName() + "]");
+
                 translators.put(genericParameter, instance);
 
             } catch (InstantiationException | IllegalAccessException ex) {
@@ -180,23 +214,55 @@ public class Cortex {
 
     }
 
+    public void loadJar(String path) {
+        File f = new File(path);
+        if (!f.exists()) {
+            System.out.println("File not found");
+
+        } else {
+            try {
+                classLoader.loadJar(f);
+                System.out.println(path + " added to Cortex ClassPath");
+            } catch (MalformedURLException ex) {
+                System.out.println("ex = " + ex);
+            }
+        }
+    }
+
     public String inspect(Object o) {
 
-        Class c = o.getClass();
+        Class c = o instanceof Class ? (Class) o : o.getClass();
 
         StringBuilder sb = new StringBuilder();
         sb.append("Class: ").append(c.getName()).append("\n");
 
         sb.append("Methods:\n");
-        Method[] methods = c.getMethods();
+        Method[] methods = c.getDeclaredMethods();
 
         for (Method method : methods) {
-            sb.append(method.getName()).append("\n");
+            sb
+                    .append(Modifier.toString(method.getModifiers()))
+                    .append(" ")
+                    .append(method.getReturnType().getSimpleName())
+                    .append(" ")
+                    .append(method.getName())
+                    .append("(");
             Class<?>[] parameterTypes = method.getParameterTypes();
-            for (Class<?> parameterType : parameterTypes) {
-                sb.append("\t").append(parameterType.getName()).append("\n");
+            for (int i = 0; i < parameterTypes.length; i++) {
+                sb.append(parameterTypes[i].getName());
+                if (i != parameterTypes.length - 1) {
+                    sb.append(", ");
+                }
             }
-            sb.append("\n");
+
+            sb.append(")\n");
+        }
+
+        sb.append("\nFields:\n");
+        Field[] fields = c.getDeclaredFields();
+
+        for (Field field : fields) {
+            sb.append(Modifier.toString(field.getModifiers())).append(" ").append(field.getType().getSimpleName()).append(" ").append(field.getName()).append("\n");
         }
 
         return sb.toString();

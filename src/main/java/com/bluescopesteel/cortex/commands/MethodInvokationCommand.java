@@ -39,6 +39,9 @@ public class MethodInvokationCommand implements Command {
                 // System.out.println("A Static Method!");
                 object = null;
             }
+            
+            //Allow access to private/protected
+            method.setAccessible(true);
 
             // System.out.println("Invoking the method...");
             // System.out.print("");
@@ -61,7 +64,7 @@ public class MethodInvokationCommand implements Command {
 
         // System.out.println("Finding Method " + methodName + " in class " + objectClass);
 
-        Method[] methods = objectClass.getMethods();
+        Method[] methods = objectClass.getDeclaredMethods();
 
         methodLoop:
         for (Method method : methods) {
