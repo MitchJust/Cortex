@@ -9,7 +9,7 @@ package com.bluescopesteel.cortex.translators;
  *
  * @author Mitchell Just (Mitchell.Just@BlueScopeSteel.com)
  */
-public class DefaultTranslator implements Translator<Object> {
+public class ObjectTranslator implements Translator<Object> {
 
     @Override
     public String translate(Object object) {

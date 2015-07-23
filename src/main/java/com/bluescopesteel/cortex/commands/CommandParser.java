@@ -163,7 +163,7 @@ public class CommandParser {
         boolean isQuoteEnclosed = false;
         int bracketLevel = 0;
 
-        List<Object> parameters = new ArrayList<>();
+        List<Object> parameters = new ArrayList();
 
         int index = 0;
         String currentParameter = new String();

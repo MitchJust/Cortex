@@ -6,18 +6,16 @@
 package com.bluescopesteel.cortex;
 
 import com.bluescopesteel.cortex.interfaces.CortexInterface;
-import com.bluescopesteel.cortex.translators.DefaultTranslator;
+import com.bluescopesteel.cortex.translators.ObjectTranslator;
 import com.bluescopesteel.cortex.translators.Translator;
+import com.bluescopesteel.cortex.util.ProcessTools;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.reflections.Reflections;
 
 /**
@@ -55,7 +52,7 @@ public class Cortex {
         return theInstance;
     }
 
-    private Cortex() {
+    protected Cortex() {
         services = Collections.synchronizedMap(new HashMap<String, Object>());
         internalVariables = Collections.synchronizedMap(new HashMap<String, InternalVariable>());
         translators = Collections.synchronizedMap(new HashMap<Class, Translator>());
@@ -67,7 +64,19 @@ public class Cortex {
         addSearchPackage("java.io");
         addAllTranslators();
         classLoader = new CortexClassLoader();
-        defaultTranslator = new DefaultTranslator();
+        defaultTranslator = new ObjectTranslator();
+        loadUtilities();
+    }
+    
+    private void loadUtilities() {
+        System.out.println("Class Loading tools.jar");
+        File f= ProcessTools.findJavaFolder();
+        if(f != null) {
+            String toolsPath = f.getPath() + File.separatorChar + "lib" + File.separatorChar + "tools.jar";
+            File toolsJar = new File(toolsPath);
+            System.out.println("toolsJar = " + toolsJar);
+            loadJar(toolsPath);
+        }
     }
 
     public Class resolveClass(String className) {
@@ -85,7 +94,7 @@ public class Cortex {
                         clazz = classLoader.loadClass(searchPackage + "." + className);
                         return clazz;
                     } catch (ClassNotFoundException ex1) {
-                        
+
                     }
                 }
             }
@@ -108,19 +117,18 @@ public class Cortex {
 
         for (Class<? extends Translator> translatorClass : subTypesOf) {
 
-            Type[] genericInterfaces = translatorClass.getGenericInterfaces();
-
-            ParameterizedType t = (ParameterizedType) genericInterfaces[0];
-
-            Type[] actualTypeArguments = t.getActualTypeArguments();
-            Class genericParameter = (Class) actualTypeArguments[0];
-
             try {
+                Type[] genericInterfaces = translatorClass.getGenericInterfaces();
+
+                ParameterizedType t = (ParameterizedType) genericInterfaces[0];
+
+                Type[] actualTypeArguments = t.getActualTypeArguments();
+                Class genericParameter = (Class) actualTypeArguments[0];
                 Translator instance = translatorClass.newInstance();
 
                 translators.put(genericParameter, instance);
 
-            } catch (InstantiationException | IllegalAccessException ex) {
+            } catch (Exception ex) {
                 java.util.logging.Logger.getLogger(Cortex.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -158,7 +166,7 @@ public class Cortex {
     }
 
     public List<String> getServices() {
-        List<String> serviceNames = new ArrayList<>();
+        List<String> serviceNames = new ArrayList();
         for (Entry<String, Object> entry : services.entrySet()) {
             serviceNames.add(entry.getKey());
         }
@@ -193,8 +201,20 @@ public class Cortex {
             return translators.get(Object[].class).translate(o);
 
         } else {
-            Translator translator = translators.containsKey(objectClass) ? translators.get(objectClass) : defaultTranslator;
-            return translator.translate(o);
+            Translator lowestTranslator = null;
+            System.out.println("Looking for best translator...");
+            while(lowestTranslator == null) {
+                System.out.println("Checking " + objectClass);
+                if(translators.containsKey(objectClass)) {
+                    
+                    lowestTranslator = translators.get(objectClass);
+                    System.out.println("lowestTranslator = " + lowestTranslator);
+                }
+                else {
+                    objectClass = objectClass.getSuperclass();
+                }
+            }
+            return lowestTranslator.translate(o);
         }
 
     }

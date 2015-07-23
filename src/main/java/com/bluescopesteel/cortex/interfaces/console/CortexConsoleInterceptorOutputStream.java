@@ -26,7 +26,7 @@ public class CortexConsoleInterceptorOutputStream extends OutputStream {
         this.passthrough = passthrough;
         isNewLine = true;
         writePrefix();
-        newLine = System.lineSeparator();
+        newLine = "\n";
         buffer = new char[newLine.length()];
     }
 

@@ -39,7 +39,7 @@ public class MethodInvokationCommand implements Command {
                 // System.out.println("A Static Method!");
                 object = null;
             }
-            
+
             //Allow access to private/protected
             method.setAccessible(true);
 
@@ -48,8 +48,7 @@ public class MethodInvokationCommand implements Command {
             Object response = method.invoke(object, parameters);
             // System.out.println("Done");
             // System.out.println("response = " + response);
-            
-            
+
             return response;
         } else {
             Class c = (object instanceof Class) ? (Class) object : object.getClass();
@@ -63,42 +62,51 @@ public class MethodInvokationCommand implements Command {
         Class objectClass = object instanceof Class ? (Class) object : object.getClass();
 
         // System.out.println("Finding Method " + methodName + " in class " + objectClass);
+        Method toInvoke = null;
+        while (toInvoke == null) {
 
-        Method[] methods = objectClass.getDeclaredMethods();
+            Method[] methods = objectClass.getDeclaredMethods();
 
-        methodLoop:
-        for (Method method : methods) {
-            if (method.getName().contentEquals(methodName)) {
-                // System.out.println("Found a matching method name");
+            methodLoop:
+            for (Method method : methods) {
+                if (method.getName().contentEquals(methodName)) {
+                    // System.out.println("Found a matching method name");
 
-                Class<?>[] parameterTypes = method.getParameterTypes();
+                    Class<?>[] parameterTypes = method.getParameterTypes();
 
-                if (parameterTypes.length == params.length) {
-                    // System.out.println("Right number of params!");
-                    for (int i = 0; i < parameterTypes.length; i++) {
+                    if (parameterTypes.length == params.length) {
+                        // System.out.println("Right number of params!");
+                        for (int i = 0; i < parameterTypes.length; i++) {
 
-                        // System.out.println(parameterTypes[i].getSimpleName() + " " + params[i].getClass().getSimpleName());
-
-                        //check for primitive
-                        if (parameterTypes[i].isPrimitive()) {
-                            // System.out.println("This is a primitive");
-                            if (!isPrimitiveEquivalent(parameterTypes[i], params[i].getClass())) {
-                                continue methodLoop;
-                            }
-                        } else {
-                            if (!parameterTypes[i].isAssignableFrom(params[i].getClass())) {
-                                continue methodLoop;
+                            // System.out.println(parameterTypes[i].getSimpleName() + " " + params[i].getClass().getSimpleName());
+                            //check for primitive
+                            if (parameterTypes[i].isPrimitive()) {
+                                // System.out.println("This is a primitive");
+                                if (!isPrimitiveEquivalent(parameterTypes[i], params[i].getClass())) {
+                                    continue methodLoop;
+                                }
+                            } else {
+                                if (!parameterTypes[i].isAssignableFrom(params[i].getClass())) {
+                                    continue methodLoop;
+                                }
                             }
                         }
+                        // System.out.println("All params match!");
+                        return method;
                     }
-                    // System.out.println("All params match!");
-                    return method;
                 }
             }
+
+            if (objectClass != Object.class) {
+                objectClass = objectClass.getSuperclass();
+            } else {
+                return null;
+            }
+
         }
 
         // System.out.println("No methods matched");
-        return null;
+        return toInvoke;
     }
 
     private void resolveParameters() throws Throwable {
@@ -127,7 +135,7 @@ public class MethodInvokationCommand implements Command {
                     || aClass == Float.class
                     || aClass == Double.class);
         }
-        if(primitive == boolean.class) {
+        if (primitive == boolean.class) {
             return aClass == Boolean.class;
         }
 

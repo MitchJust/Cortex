@@ -50,8 +50,27 @@ public class SetValueCommand implements Command {
 
     public void setFieldValue(FieldAccessCommand fac, Object value) throws Throwable {
         Object object = ObjectResolver.resolveObjectReference(fac.getObjectName());
-        Field field = object.getClass().getField(fac.getMemberName());
-        field.set(object, value);
+        System.out.println("Found Object: " + object);
+
+        Field field = null;
+        try {
+            field = object.getClass().getField(fac.getMemberName());
+        } catch (Exception ex) {
+            Field[] fields = object.getClass().getDeclaredFields();
+            for (Field field1 : fields) {
+                if (field1.getName().contentEquals(fac.getMemberName())) {
+                    field = field1;
+                    field.setAccessible(true);
+                    break;
+                }
+            }
+        }
+
+        if (field != null) {
+            field.set(object, value);
+        } else {
+            throw new Exception("Unable to find field " + fac.getMemberName() + " in object " + fac.getObjectName());
+        }
     }
 
 }
